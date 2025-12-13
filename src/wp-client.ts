@@ -85,6 +85,7 @@ export interface WordPressPublishResult {
 
 export interface WordPressMediaUploadResult {
   url: string;
+  mediaId?: string;
 }
 
 export interface WordPressClient {

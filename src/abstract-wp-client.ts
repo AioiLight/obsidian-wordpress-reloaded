@@ -213,7 +213,8 @@ export abstract class AbstractWordPressClient implements WordPressClient {
             const result = await this.uploadMedia({
               mimeType: fileType?.mimeType ?? 'application/octet-stream',
               fileName: imgFile.name,
-              content: content
+              content: content,
+              alt: img.altText
             }, auth);
             if (result.code === WordPressClientReturnCode.OK) {
               if(img.width && img.height){

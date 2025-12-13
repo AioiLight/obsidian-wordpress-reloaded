@@ -185,6 +185,19 @@ export class WpRestClient extends AbstractWordPressClient {
           formItemNameMapper: this.context.formItemNameMapper
         });
       const result = this.context.responseParser.toWordPressMediaUploadResult(response);
+
+      const altResponse: SafeAny = await this.client.httpPost(
+        getUrl(undefined, 'wp-json/wp/v2/media/' + result.mediaId),
+        JSON.stringify({
+          alt_text: media.alt
+        }),
+        {
+          headers: {
+            ...this.context.getHeaders(certificate)
+          }
+        }
+      )
+
       return {
         code: WordPressClientReturnCode.OK,
         data: result,
@@ -276,7 +289,8 @@ class WpRestClientCommonContext implements WpRestClientContext {
     },
     toWordPressMediaUploadResult: (response: SafeAny): WordPressMediaUploadResult => {
       return {
-        url: response.source_url
+        url: response.source_url,
+        mediaId: response.id
       };
     },
     toTerms: (response: SafeAny): Term[] => {
