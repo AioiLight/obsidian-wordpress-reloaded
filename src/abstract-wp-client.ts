@@ -222,7 +222,7 @@ export abstract class AbstractWordPressClient implements WordPressClient {
               }else if (img.width){
                   postParams.content = postParams.content.replace(img.original, `![[${result.data.url}|${img.width}]]`);
               }else{
-                  postParams.content = postParams.content.replace(img.original, `![[${result.data.url}]]`);
+                  postParams.content = postParams.content.replace(img.original, `![${img.altText}](${result.data.url})`);
               }
             } else {
               if (result.error.code === WordPressClientReturnCode.ServerInternalError) {

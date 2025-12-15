@@ -26,6 +26,7 @@ interface WpRestEndpoint {
   getTag: string | UrlGetter;
   validateUser: string | UrlGetter;
   uploadFile: string | UrlGetter;
+  setAlt: string | UrlGetter | undefined;
   getPostTypes: string | UrlGetter;
 }
 
@@ -186,17 +187,24 @@ export class WpRestClient extends AbstractWordPressClient {
         });
       const result = this.context.responseParser.toWordPressMediaUploadResult(response);
 
-      const altResponse: SafeAny = await this.client.httpPost(
-        getUrl(undefined, 'wp-json/wp/v2/media/' + result.mediaId),
-        JSON.stringify({
-          alt_text: media.alt
-        }),
-        {
-          headers: {
-            ...this.context.getHeaders(certificate)
+      if (result.mediaId) {
+        await this.client.httpPost(
+          getUrl(this.context.endpoints?.setAlt, 'wp-json/wp/v2/media/<%= id %>', {
+            id: result.mediaId
+          }),
+          this.context.name === 'WpRestClientWpComOAuth2Context' ?
+          {
+            'alt': media.alt
+          } : {
+            'alt_text': media.alt
+          },
+          {
+            headers: {
+              ...this.context.getHeaders(certificate)
+            }
           }
-        }
-      )
+        );
+      }
 
       return {
         code: WordPressClientReturnCode.OK,
@@ -344,6 +352,7 @@ export class WpRestClientWpComOAuth2Context implements WpRestClientContext {
     getTag: () => `/rest/v1.1/sites/${this.site}/tags?number=1&search=<%= name %>`,
     validateUser: () => `/rest/v1.1/sites/${this.site}/posts?number=1`,
     uploadFile: () => `/rest/v1.1/sites/${this.site}/media/new`,
+    setAlt: () => `/rest/v1.1/sites/${this.site}/media/<%= id %>/edit`,
     getPostTypes: () => `/rest/v1.1/sites/${this.site}/post-types`,
   };
 
@@ -381,7 +390,8 @@ export class WpRestClientWpComOAuth2Context implements WpRestClientContext {
       if (response.media.length > 0) {
         const media = response.media[0];
         return {
-          url: media.link
+          url: media.link,
+          mediaId: media.ID
         };
       } else if (response.errors) {
         throw new Error(response.errors.error.message);
